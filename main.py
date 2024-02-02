@@ -6,27 +6,30 @@ import time
 
 import pandas
 
-from nopriz import ScraperNopriz
-from nosstroy import ScraperNostroy
-from my_logging import get_logger
+from src.nopriz import ScraperNopriz
+from src.nosstroy import ScraperNostroy
+from src.my_logging import get_logger
 
 DATE_FORMAT = '%d.%m.%Y'
-DATE_FROM = '01.01.2023'
+DATE_FROM = '01.12.2023'
 DATE_TO = datetime.now().date().strftime(DATE_FORMAT)
-# DATE_TO = '27.09.2023'
+# DATE_TO = '30.09.2023'
 
 
 def write_data_to_excel(filename, data):
     df = pandas.DataFrame(data)
+    i = 0
     while True:
         try:
             df.to_excel(filename, index=False)
             logging.info(f'{filename} was written')
             break
-        except PermissionError:
+        except PermissionError as ex:
             logging.info('Please close the file')
+            i += 1
             time.sleep(10)
-
+            if i == 5:
+                raise ex
 
 async def main():
     scraper_nopriz = await ScraperNopriz.create(
