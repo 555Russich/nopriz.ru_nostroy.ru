@@ -40,8 +40,6 @@ def write_data_to_excel(filepath: Path, data: list[NoprizRow | NostroyRow]) -> N
             if i == 5:
                 raise ex
 
-#nopriz 793
-#nostroy 1010
 
 async def main():
     date_from = datetime.strptime(DATE_FROM, DATE_FORMAT)
