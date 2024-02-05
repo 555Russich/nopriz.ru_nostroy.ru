@@ -10,13 +10,17 @@ from src.scrappers.nopriz import ScraperNopriz
 from src.scrappers.nostroy import ScraperNostroy
 from src.my_google import GoogleSheets
 from src.schemas import NoprizRow, NostroyRow
+from src.date_utils import TZ_MSC
 
 DATE_FROM = '01.02.2024'
 DATE_TO = datetime.now().date().strftime(DATE_FORMAT)
 
 
 async def main():
-    scheduler = AsyncIOScheduler(logger=logging.getLogger())
+    scheduler = AsyncIOScheduler(
+        logger=logging.getLogger(),
+        timezone=TZ_MSC
+    )
     scheduler.add_job(
         func=scrap_all,
         trigger='cron',

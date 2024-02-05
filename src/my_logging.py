@@ -1,5 +1,8 @@
 import logging
 import sys
+from datetime import datetime
+
+from src.date_utils import TZ_MSC
 
 
 def get_logger(filename):
@@ -13,3 +16,4 @@ def get_logger(filename):
             logging.StreamHandler(sys.stdout),
         ]
     )
+    logging.Formatter.converter = lambda *args: datetime.now(tz=TZ_MSC).timetuple()
