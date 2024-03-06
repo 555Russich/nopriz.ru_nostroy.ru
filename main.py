@@ -32,7 +32,6 @@ async def main():
     scheduler.start()
 
 
-
 async def scrap_all(
         date_from: datetime | None = None,
         date_to: datetime | None = None,

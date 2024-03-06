@@ -4,12 +4,13 @@ from pydantic import (
     BaseModel,
     Field,
     ConfigDict,
-    model_validator
+    model_validator,
+    field_validator
 )
 
 
 class BaseRow(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, coerce_numbers_to_str=True)
 
     sro: str | None = Field(alias='СРО', default=None)
     full_description: str | None = Field(alias='Полное наименование', default=None)
@@ -53,6 +54,11 @@ class BaseRow(BaseModel):
                 elif v == '':
                     d[k] = None
         return d
+
+    # @field_validator('phones', 'full_address', 'ogrnip', mode='before')
+    # @field_validator('ogrnip', mode='before')
+    # def int2str(cls, v: Any) -> str:
+    #     return str(v)
 
 
 class NostroyRow(BaseRow):

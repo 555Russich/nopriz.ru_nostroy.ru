@@ -74,7 +74,7 @@ class GoogleSheets:
             self, data: list[NoprizRow | NostroyRow],
             row_model: Type[NoprizRow] | Type[NostroyRow]
     ) -> None:
-        ws_data = await self.worksheet.get_all_records(default_blank=None, numericise_ignore=['all'])
+        ws_data = await self.worksheet.get_all_records(default_blank=None, value_render_option='FORMULA')
         ws_data_formatted = [row_model(**row) for row in ws_data]
         new_data = [row.dict(by_alias=True) for row in data if row not in ws_data_formatted]
         logging.info(f'New rows after comparing: {len(new_data)}')
