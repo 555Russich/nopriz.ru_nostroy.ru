@@ -18,11 +18,14 @@ class ScraperNostroy(BaseScrapper):
         }
         while True:
             async with self._session.post(
-                    'https://api-open-nostroy.anonamis.ru/api/sro/all/member/list',
-                    json=data
+                    'https://reestr.nostroy.ru/api/sro/all/member/list',
+                    json=data,
+                    verify_ssl=False
             ) as r:
                 r_json = await r.json()
-                logging.info(f'{len(ids)} collected')
+
+                assert r_json['success'] is True, r_json['message']
+
                 for d in r_json['data']['data']:
                     dt = datetime.strptime(d['registry_registration_date_time_string'], '%d.%m.%Y %H:%M:%S')
                     if dt < self.date_from:
@@ -36,13 +39,16 @@ class ScraperNostroy(BaseScrapper):
                     logging.info(f"last date page {data['page']}: {dt}")
                     data['page'] += 1
 
+                logging.info(f'{len(ids)} ids collected')
+
     async def collect_page_info(self, id_: str) -> NostroyRow:
-        url = f'https://api-open-nostroy.anonamis.ru/api/member/{id_}/info'
-        async with self._session.post(url) as r:
+        url = f'https://reestr.nostroy.ru/api/member/{id_}/info'
+        async with self._session.post(url, verify_ssl=False) as r:
             r = await r.json()
             r = r['data']
 
             return NostroyRow(
+                id=r['id'],
                 sro=r['sro'].get('full_description'),
                 full_description=r.get('full_description'),
                 short_description=r.get('short_description'),
