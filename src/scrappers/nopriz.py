@@ -56,6 +56,7 @@ class ScraperNopriz(BaseScrapper):
             r = r['data']
 
         return NoprizRow(
+            id=r['id'],
             sro=r['sro'].get('full_description'),
             inventory_number=r.get('inventory_number'),
             full_description=r.get('full_description'),

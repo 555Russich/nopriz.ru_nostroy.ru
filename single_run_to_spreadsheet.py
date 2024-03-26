@@ -2,12 +2,13 @@ import asyncio
 from datetime import datetime, timedelta
 
 from main import scrap_all
-from my_logging import get_logger
+from src.my_logging import get_logger
 
 
 async def main():
     date_to = datetime.now()
     date_from = date_to - timedelta(days=5)
+    # date_from = datetime(year=2024, month=3, day=24)
     await scrap_all(date_from=date_from, date_to=date_to)
 
 

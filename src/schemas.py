@@ -12,6 +12,7 @@ from pydantic import (
 class BaseRow(BaseModel):
     model_config = ConfigDict(populate_by_name=True, coerce_numbers_to_str=True)
 
+    id: int
     sro: str | None = Field(alias='СРО', default=None)
     full_description: str | None = Field(alias='Полное наименование', default=None)
     short_description: str | None = Field(alias='Сокращенное наименование', default=None)
