@@ -58,7 +58,7 @@ class ScraperNopriz(BaseScrapper):
         return NoprizRow(
             id=r['id'],
             sro=r['sro'].get('full_description'),
-            registration_number=NoprizRow.parse_registration_number(r),
+            registration_number=r['sro'].get('registration_number'),
             full_description=r.get('full_description'),
             short_description=r.get('short_description'),
             member_type=r['member_type'].get('title') if r.get('member_type') else None,

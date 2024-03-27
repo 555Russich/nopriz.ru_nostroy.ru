@@ -46,13 +46,6 @@ class BaseRow(BaseModel):
         ]
         return ', '.join([info for info in address_info if info is not None])
 
-    @staticmethod
-    def parse_registration_number(data: dict) -> str:
-        if data['sro'].get('registration_number') is None:
-            print(data)
-            return ''
-        return data['sro']['registration_number']
-
     @model_validator(mode='before')
     @classmethod
     def serialize_model(cls, d: Any) -> Any:
