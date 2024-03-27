@@ -13,7 +13,6 @@ class BaseRow(BaseModel):
     model_config = ConfigDict(populate_by_name=True, coerce_numbers_to_str=True)
 
     id: int
-    inventory_number: str | None = Field(alias='Регистрационный номер члена СРО', default=None)
     sro: str | None = Field(alias='СРО', default=None)
     full_description: str | None = Field(alias='Полное наименование', default=None)
     short_description: str | None = Field(alias='Сокращенное наименование', default=None)
@@ -64,6 +63,7 @@ class NostroyRow(BaseRow):
 
 
 class NoprizRow(BaseRow):
+    inventory_number: str | None = Field(alias='Регистрационный номер члена СРО', default=None)
     member_status: str | None = Field(alias='Статус члена СРО', default=None)
     basis: str | None = Field(alias='Дата и номер решения о приеме в члены', default=None)
     approved_basis_date: str | None = Field(alias='Дата вступления в силу решения о приеме', default=None)
