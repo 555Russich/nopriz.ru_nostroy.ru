@@ -48,6 +48,9 @@ class ScraperNostroy(BaseScrapper):
 
                 logging.info(f'{len(ids)} ids collected')
 
+                if data['count'] == 0:
+                    return list(ids)
+
     async def collect_page_info(self, id_: str) -> NostroyRow:
         url = f'https://reestr.nostroy.ru/api/member/{id_}/info'
         async with self._session.post(url, verify_ssl=False) as r:

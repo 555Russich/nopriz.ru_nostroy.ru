@@ -33,6 +33,7 @@ class BaseScrapper(ABC):
                     for v_ in v:
                         filters_ = filters.copy()
                         filters_[k] = v_
+                        logging.info(f'Start using {filters_=}')
                         ids += await self._collect_ids(filters_)
         return ids
 
