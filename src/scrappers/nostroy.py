@@ -33,6 +33,9 @@ class ScraperNostroy(BaseScrapper):
 
                 assert r_json['success'] is True, r_json['message']
 
+                if r_json['data']['count'] == 0:
+                    return list(ids)
+
                 for d in r_json['data']['data']:
                     dt = datetime.strptime(d['registry_registration_date_time_string'], '%d.%m.%Y %H:%M:%S')
                     if dt < self.date_from:
