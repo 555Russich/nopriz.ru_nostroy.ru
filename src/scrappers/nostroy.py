@@ -48,7 +48,7 @@ class ScraperNostroy(BaseScrapper):
 
                 logging.info(f'{len(ids)} ids collected')
 
-                if r_json['data']['count'] == 0:
+                if r_json['data']['count'] < data['pageCount']:
                     return list(ids)
 
     async def collect_page_info(self, id_: str) -> NostroyRow:
