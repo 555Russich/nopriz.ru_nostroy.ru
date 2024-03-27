@@ -65,7 +65,7 @@ class ScraperNostroy(BaseScrapper):
                 sro=r['sro'].get('full_description'),
                 full_description=r.get('full_description'),
                 short_description=r.get('short_description'),
-                registration_number=r.get('registration_number'),
+                registration_number=NostroyRow.parse_registration_number(r),
                 ogrnip=r.get('ogrnip'),
                 inn=r.get('inn'),
                 phones=r.get('phones'),
