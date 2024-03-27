@@ -48,6 +48,9 @@ class BaseRow(BaseModel):
 
     @staticmethod
     def parse_registration_number(data: dict) -> str:
+        if data['sro'].get('registration_number') is None:
+            print(data)
+            return ''
         return data['sro']['registration_number']
 
     @model_validator(mode='before')
