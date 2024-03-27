@@ -16,7 +16,7 @@ class ScraperNostroy(BaseScrapper):
         data = {
             'filters': filters,
             'page': 1,
-            'pageCount': "1000",
+            'pageCount': 1000,
             "sortBy": {
                 'registry_registration_date': "DESC"  # sorted from new to old registrations
             }
