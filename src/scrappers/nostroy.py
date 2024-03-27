@@ -1,15 +1,20 @@
 from datetime import datetime
 import logging
+import ssl
 
 from src.scrappers.base import BaseScrapper
 from src.schemas import NostroyRow
 
+from config import FILEPATH_CERT
+
+ssl_context = ssl.create_default_context(capath=FILEPATH_CERT)
+
 
 class ScraperNostroy(BaseScrapper):
-    async def collect_ids(self) -> list[int]:
+    async def _collect_ids(self, filters: dict) -> list[int]:
         ids = set()
         data = {
-            'filters': {},
+            'filters': filters,
             'page': 1,
             'pageCount': "1000",
             "sortBy": {
@@ -20,7 +25,9 @@ class ScraperNostroy(BaseScrapper):
             async with self._session.post(
                     'https://reestr.nostroy.ru/api/sro/all/member/list',
                     json=data,
-                    verify_ssl=False
+                    # ssl_context=ssl_context,
+                    verify_ssl=False,
+                    timeout=90,
             ) as r:
                 r_json = await r.json()
 

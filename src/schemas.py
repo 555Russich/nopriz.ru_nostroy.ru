@@ -57,11 +57,6 @@ class BaseRow(BaseModel):
                     d[k] = None
         return d
 
-    # @field_validator('phones', 'full_address', 'ogrnip', mode='before')
-    # @field_validator('ogrnip', mode='before')
-    # def int2str(cls, v: Any) -> str:
-    #     return str(v)
-
 
 class NostroyRow(BaseRow):
     registration_number: str | None = Field(alias='Регистрационный номер члена СРО', default=None)
@@ -78,3 +73,15 @@ class NoprizRow(BaseRow):
     member_right_vv: float | None = Field(alias='Размер взноса в компенсационный фонд возмещения вреда', default=None)
     member_right_odo: float | None = Field(
         alias='Размер взноса в компенсационный фонд обеспечения договорных обязательств', default=None)
+
+
+class FiltersNostroy(BaseModel):
+    region_number: int | list[int] | None = None
+    sro_registration_number: str | list[str] | None = None
+    director: str | list[str] | None = None
+    sro_full_description: str | list[str] | None = None
+    member_status: int | None = None  # 2 - Исключен
+    full_description: str | list[str] | None = None
+    inn: int | list[int] | None = None
+    ogrnip: int | list[int] | None = None
+    registry_registration_date: str | list[str] | None = None  # 2024-03-13

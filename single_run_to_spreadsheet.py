@@ -7,8 +7,8 @@ from src.my_logging import get_logger
 
 async def main():
     date_to = datetime.now()
-    date_from = date_to - timedelta(days=5)
-    # date_from = datetime(year=2024, month=3, day=24)
+    # date_from = date_to - timedelta(days=5)
+    date_from = datetime(year=1900, month=1, day=1)
     await scrap_all(date_from=date_from, date_to=date_to)
 
 

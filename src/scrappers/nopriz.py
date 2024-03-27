@@ -9,11 +9,11 @@ class ScraperNopriz(BaseScrapper):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                              '(KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36'}
 
-    async def collect_ids(self):
+    async def _collect_ids(self, filters: dict):
         ids = set()
         collect_per_page = 1000
         json_ = {
-            'filters': {},
+            'filters': filters,
             'page': 1,
             'pageCount': f"{collect_per_page}",
             'searchString': "",

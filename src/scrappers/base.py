@@ -5,6 +5,8 @@ from datetime import datetime
 
 from aiohttp import ClientSession
 
+from src.schemas import FiltersNostroy
+
 
 class BaseScrapper(ABC):
     def __init__(self, date_format: str, date_from: datetime, date_to: datetime):
@@ -13,17 +15,32 @@ class BaseScrapper(ABC):
         self.date_to = date_to
 
     @abstractmethod
-    async def collect_ids(self) -> list[str]:
+    async def _collect_ids(self, filters: dict) -> list[str]:
         raise NotImplementedError
 
     @abstractmethod
     async def collect_page_info(self, id_: str) -> dict[str, int | str]:
         raise NotImplementedError
 
-    async def collect_data(self) -> list:
+    async def collect_ids(self, filters: dict) -> list[str]:
+        ids = []
+
+        if all([not isinstance(v, (list, tuple)) for v in filters.values()]):
+            ids += await self._collect_ids(filters)
+        else:
+            for k, v in filters.items():
+                if isinstance(v, (list, tuple)):
+                    for v_ in v:
+                        filters_ = filters.copy()
+                        filters_[k] = v_
+                        ids += await self._collect_ids(filters_)
+        return ids
+
+    async def collect_data(self, filters: FiltersNostroy | None = None) -> list:
+        filters = filters.dict(exclude_none=True) if filters else {}
         data = []
 
-        ids = await self.collect_ids()
+        ids = await self.collect_ids(filters=filters)
         tasks = []
         for id_ in ids:
             tasks.append(self.collect_page_info(id_))
