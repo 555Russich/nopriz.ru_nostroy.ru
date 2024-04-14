@@ -5,7 +5,6 @@ from pydantic import (
     Field,
     ConfigDict,
     model_validator,
-    field_validator
 )
 
 
@@ -17,8 +16,8 @@ class BaseRow(BaseModel):
     sro: str | None = Field(alias='СРО', default=None)
     full_description: str | None = Field(alias='Полное наименование', default=None)
     short_description: str | None = Field(alias='Сокращенное наименование', default=None)
-    ogrnip: int | None = Field(alias='ОГРН/ОГРНИП', default=None)
-    inn: int | None = Field(alias='ИНН', default=None)
+    ogrnip: int | str | None = Field(alias='ОГРН/ОГРНИП', default=None)
+    inn: int | str | None = Field(alias='ИНН', default=None)
     phones: str | None = Field(alias='Номер контактного телефона', default=None)
     member_type: str | None = Field(alias='Тип члена СРО', default=None)
     full_address: str | None = Field(alias='Адрес места нахождения юридического лица', default=None)
@@ -60,6 +59,17 @@ class BaseRow(BaseModel):
 
 class NostroyRow(BaseRow):
     region: str | None = Field(alias='Регион', default=None)
+    right_status: str | None = Field(alias='Статус Права', default=None)
+    right_basis: str | None = Field(alias='Основание наделения правом', default=None)
+    is_simple: bool | None = Field(alias='В отношении объектов капитального строительства (кроме особо опасных, технически сложных и уникальных объектов, объектов использования атомной энергии)', default=None)
+    is_extremely_dangerous: bool | None = Field(alias='В отношении особо опасных, технически сложных и уникальных объектов капитального строительства (кроме объектов использования атомной энергии)', default=None)
+    is_nuclear: bool | None = Field(alias='В отношении объектов использования атомной энергии', default=None)
+    is_odo: bool | None = Field(alias='Сведения об ограничении права принимать участие в заключении договоров строительного подряда, договоров подряда на осуществление сноса объектов капитального строительства с использованием конкурентных способов заключения договоров', default=None)
+    responsibility_level_odo: str | None = Field(alias='Размер обязательств по договорам подряда с использованием конкурентных способов заключения договоров (уровень ответственности)', default=None)
+    responsibility_level_vv: str | None = Field(alias='Стоимость работ по одному договору подряда (уровень ответственности)', default=None)
+    compensation_fund_fee_odo: str | None = Field(alias='Размер взноса в компенсационный фонд обеспечения договорных обязательств', default=None)
+    compensation_fund_fee_vv: str | None = Field(alias='Размер взноса в компенсационный фонд возмещения вреда', default=None)
+    compensation_fund_fee_odopayment_date: str | None = Field(alias=' Дата уплаты взноса (дополнительного взноса)', default=None)
 
 
 class NoprizRow(BaseRow):
@@ -79,7 +89,8 @@ class FiltersNostroy(BaseModel):
     sro_registration_number: str | list[str] | None = None
     director: str | list[str] | None = None
     sro_full_description: str | list[str] | None = None
-    member_status: int | None = None  # 2 - Исключен
+    member_status: int | None = None  # 1 - Является членом, 2 - Исключен
+    sro_enabled: bool | None = None
     full_description: str | list[str] | None = None
     inn: int | list[int] | None = None
     ogrnip: int | list[int] | None = None

@@ -1,4 +1,5 @@
 import logging
+import re
 from datetime import datetime
 
 from src.scrappers.base import BaseScrapper
@@ -22,28 +23,30 @@ class ScraperNopriz(BaseScrapper):
             }
         }
         while True:
-            async with self._session.post(
-                    'https://reestr.nopriz.ru/api/sro/all/member/list',
+            r_json = await self.request_json(
+                    method='POST',
+                    url='https://reestr.nopriz.ru/api/sro/all/member/list',
                     headers=self.headers,
+                    proxy=self.proxy_url,
                     json=json_
-            ) as r:
-                r_json = await r.json()
-                for d in r_json['data']['data']:
-                    dt = datetime.strptime(
-                        d['registry_registration_date'].replace('+03:00', ''),
-                        '%Y-%m-%dT%H:%M:%S'
-                    )
-                    if dt < self.date_from:
-                        logging.info(f'Page №: {json_["page"]}, last date: {dt}')
-                        logging.info(f'{len(ids)} ids was collected')
-                        return list(ids)
-                    elif dt > self.date_to:
-                        continue
-                    else:
-                        ids.add(d['id'])
-                else:
+            )
+
+            for d in r_json['data']['data']:
+                dt = datetime.strptime(
+                    re.sub(r'\+0\d:00', '', d['registry_registration_date']),
+                    '%Y-%m-%dT%H:%M:%S'
+                )
+                if dt < self.date_from:
                     logging.info(f'Page №: {json_["page"]}, last date: {dt}')
-                    logging.info(f'Page №: {json_["page"]} ; Collected ids: {len(ids)}')
+                    logging.info(f'{len(ids)} ids was collected')
+                    return list(ids)
+                elif dt > self.date_to:
+                    continue
+                else:
+                    ids.add(d['id'])
+            else:
+                logging.info(f'Page №: {json_["page"]}, last date: {dt}')
+                logging.info(f'Page №: {json_["page"]} ; Collected ids: {len(ids)}')
 
             if len(r_json['data']['data']) < collect_per_page:
                 break
@@ -51,14 +54,18 @@ class ScraperNopriz(BaseScrapper):
         return list(ids)
 
     async def collect_page_info(self, id_: int) -> NoprizRow:
-        async with self._session.post(f'https://reestr.nopriz.ru/api/member/{id_}/info', headers=self.headers) as r:
-            r = await r.json()
-            r = r['data']
+        r = await self.request_json(
+            method='POST',
+            url=f'https://reestr.nopriz.ru/api/member/{id_}/info',
+            headers=self.headers,
+            proxy=self.proxy_url
+        )
+        r = r['data']
 
         return NoprizRow(
             id=r['id'],
             sro=r['sro'].get('full_description'),
-            registration_number=r['sro'].get('registration_number'),
+            registration_number=r['registration_number'],
             full_description=r.get('full_description'),
             short_description=r.get('short_description'),
             member_type=r['member_type'].get('title') if r.get('member_type') else None,
