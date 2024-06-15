@@ -48,7 +48,7 @@ class ScraperNostroy(BaseScrapper):
             if len(r_json['data']['data']) < data['pageCount'] or data['page'] > r_json['data']['countPages']:
                 return list(ids)
 
-    async def collect_page_info(self, id_: str) -> NostroyRow:
+    async def get_sro_member(self, id_: str) -> NostroyRow:
         url = f'https://reestr.nostroy.ru/api/member/{id_}/info'
         r = await self.request_json(method='POST', url=url, verify_ssl=False, proxy=self.proxy_url)
         r = r['data']

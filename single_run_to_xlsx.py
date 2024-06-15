@@ -10,11 +10,10 @@ from config import DATE_FORMAT
 from src.my_logging import get_logger
 from src.scrappers.nopriz import ScraperNopriz
 from src.scrappers.nostroy import ScraperNostroy
-from src.schemas import NostroyRow, NoprizRow, FiltersNostroy
+from src.schemas import NostroyRow, NoprizRow, FiltersNostroy, FiltersNopriz
 
-DATE_FROM = '01.01.1900'
-# DATE_TO = '09.04.2024'
-# DATE_FROM = '10.04.2024'
+# DATE_FROM = '01.01.1900'
+DATE_FROM = '13.06.2024'
 DATE_TO = datetime.now().date().strftime(DATE_FORMAT)
 
 
@@ -51,16 +50,11 @@ async def main():
     date_to = datetime.strptime(DATE_TO, DATE_FORMAT)
     proxy_url = ''
 
-    # async with ScraperNopriz(date_format=DATE_FORMAT, date_from=date_from, date_to=date_to) as scrapper:
-    #     ids = await scrapper.collect_ids()
-    #     filepath = Path(scrapper.get_filename('nopriz')).with_suffix('.xlsx')
-    #     for data in await scrapper.collect_data(ids):
-    #         write_data_to_excel(filepath, data)
-
-    async with ScraperNostroy(proxy_url=proxy_url, date_format=DATE_FORMAT, date_from=date_from, date_to=date_to) as scrapper:
-        filters = FiltersNostroy(member_status=1, sro_enabled=True)
+    async with ScraperNopriz(date_format=DATE_FORMAT, date_from=date_from, date_to=date_to) as scrapper:
+        filters = FiltersNopriz(member_status=1, sro_enabled=True, sro_registration_number='И')
         ids = await scrapper.get_ids(filters=filters)
-        filepath = Path(scrapper.get_filename('nostroy')).with_suffix('.xlsx')
+        filepath = Path(scrapper.get_filename('nopriz')).with_suffix('.xlsx')
+        scrapper.to_excel(filepath, data=[])
 
         data_to_append = []
         async for data in scrapper.collect_data(ids):
@@ -68,11 +62,28 @@ async def main():
                 data_to_append.append(row)
 
             if len(data_to_append) >= 10000:
-                write_data_to_excel(filepath=filepath, data=data_to_append)
+                scrapper.to_excel(filepath=filepath, data=data_to_append)
                 data_to_append = []
 
         if data_to_append:
-            write_data_to_excel(filepath=filepath, data=data_to_append)
+            scrapper.to_excel(filepath, data_to_append)
+
+    # async with ScraperNostroy(proxy_url=proxy_url, date_format=DATE_FORMAT, date_from=date_from, date_to=date_to) as scrapper:
+    #     filters = FiltersNostroy(member_status=1, sro_enabled=True)
+    #     ids = await scrapper.get_ids(filters=filters)
+    #     filepath = Path(scrapper.get_filename('nostroy')).with_suffix('.xlsx')
+    #
+    #     data_to_append = []
+    #     async for data in scrapper.collect_data(ids):
+    #         for row in data:
+    #             data_to_append.append(row)
+    #
+    #         if len(data_to_append) >= 10000:
+    #             write_data_to_excel(filepath=filepath, data=data_to_append)
+    #             data_to_append = []
+    #
+    #     if data_to_append:
+    #         write_data_to_excel(filepath=filepath, data=data_to_append)
 
 
 if __name__ == '__main__':
