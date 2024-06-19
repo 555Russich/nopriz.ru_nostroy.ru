@@ -1,6 +1,8 @@
 from pathlib import Path
 
 DIR_SECRETS = Path('secrets')
+DIR_XLSX = Path('xlsx')
+DIR_CARTS = DIR_XLSX / 'carts'
 
 FILEPATH_SERVICE_ACCOUNT = DIR_SECRETS / 'service_account.json'
 FILEPATH_CERT = DIR_SECRETS / 'globalsign.cer'

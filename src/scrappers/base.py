@@ -19,6 +19,7 @@ from config import DATE_FORMAT
 
 
 class BaseScrapper(ABC):
+    NAME: str
     date_format: str = DATE_FORMAT
     last_ip_change: float | None = None
 
@@ -44,7 +45,6 @@ class BaseScrapper(ABC):
     async def get_sro(self, id_: int) -> SRO:
         raise NotImplementedError
 
-    @abstractmethod
     async def collect_ids(self, filters: dict) -> list[int]:
         ids = []
 
@@ -64,7 +64,6 @@ class BaseScrapper(ABC):
                       use_cached: bool = False) -> list[int]:
         filters = filters.dict(exclude_none=True) if filters else {}
         filepath = Path(f'ids_{self.__class__.__name__}.txt')
-        # filepath = Path('not_appended_ids.txt')
 
         if use_cached and filepath.exists():
             with open(filepath, 'r') as f:
@@ -72,6 +71,7 @@ class BaseScrapper(ABC):
                 ids = sorted(list(set(ids)))
         else:
             ids = await self.collect_ids(filters=filters)
+            ids = sorted(ids)
             with open(filepath, 'w') as f:
                 f.writelines([f'{x}\n' for x in ids])
             logging.info(f'Wrote {len(ids)} to {filepath}')

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Self
 
 from pydantic import (
     BaseModel,
@@ -8,7 +8,11 @@ from pydantic import (
 )
 
 
-class SRO(BaseModel):
+class MyBaseModel(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, coerce_numbers_to_str=True)
+
+
+class SRO(MyBaseModel):
     full_description: str | None = Field(alias='Полное название СРО', default=None)
     short_description: str | None = Field(alias='Сокращенное название СРО', default=None)
     registration_number: str | None = Field(alias='Регистрационный номер в государственном реестре саморегулируемых организаций', default=None)
@@ -32,12 +36,29 @@ class SRO(BaseModel):
             f'Email:{self.email}',
             f'Адрес сайта: {self.site}'
         ]
-        return ';'.join(paragraphs)
+        return ';\n'.join([p for p in paragraphs if p])
 
 
-class BaseRow(BaseModel):
-    model_config = ConfigDict(populate_by_name=True, coerce_numbers_to_str=True)
+class Check(MyBaseModel):
+    check_date: str | None = Field(alias='Дата начала проверки', default=None)
+    disciplinary_action: str | None = Field(alias='Факты применения мер дисциплинарного воздействия', default=None)
+    member_check_result: str | None = Field(alias='Результат проверки члена СРО', default=None)
+    member_check_type: str | None = Field(alias='Тип проверки', default=None)
 
+
+class Insurance(MyBaseModel):
+    begin_date: str | None = Field(alias='Начало действия договора', default=None)
+    contract_number: str | None = Field(alias='Номер договора', default=None)
+    end_date: str | None = Field(alias='Окончание действия договора', default=None)
+    insurance_sum: str | None = Field(alias='Размер страховой суммы', default=None)
+    insurer: str | None = Field(alias='Наименование страховой компании', default=None)
+    license: str | None = Field(alias='Лицензия', default=None)
+    object_title: str | None = Field(alias='Предмет договора страхования', default=None)
+    phone: str | None = Field(alias='Контактные телефоны', default=None)
+    place: str | None = Field(alias='Место нахождения', default=None)
+
+
+class BaseRow(MyBaseModel):
     id: int
     sro: SRO
     registration_number: str | None = Field(alias='Регистрационный номер члена СРО', default=None)
@@ -55,14 +76,19 @@ class BaseRow(BaseModel):
         alias='Сведения о соответствии члена СРО условиям членства в СРО, предусмотренным '
               'законодательством РФ и (или) внутренними документами СРО', default=None)
     other_information: str | None = Field(alias='Иные сведения, предусмотренные требованиями СРО', default=None)
+    members_total_liability: str | None = Field(alias='Фактический совокупный размер обязательств члена саморегулируемой организации по договорам подряда',default=None)
+    lialbility_date: str | None = Field(alias='Дата обновления', default=None)
     registry_registration_date: str | None = Field(alias='Дата регистрации в реестре', default=None)
     last_updated_at: str | None = Field(alias='Дата изменения информации', default=None)
-
     right_status: str | None = Field(alias='Статус Права', default=None)
+    right_status_vv: str | None = Field(alias='Статус права ВВ', default=None)
+    right_status_odo: str | None = Field(alias='Статус права ОДО', default=None)
+    odo_compensation_fund_date: str | None = Field(alias='Дата оплаты ОДО', default=None)
+    odo_responsibility_level_date: str | None = Field(alias='Дата доп. взноса ОДО', default=None)
     right_basis: str | None = Field(alias='Основание наделения правом', default=None)
-    is_simple: bool | None = Field(alias='В отношении объектов капитального строительства (кроме особо опасных, технически сложных и уникальных объектов, объектов использования атомной энергии)', default=None)
-    is_extremely_dangerous: bool | None = Field(alias='В отношении особо опасных, технически сложных и уникальных объектов капитального строительства (кроме объектов использования атомной энергии)', default=None)
-    is_nuclear: bool | None = Field(alias='В отношении объектов использования атомной энергии', default=None)
+    is_simple: str | None = Field(alias='В отношении объектов капитального строительства (кроме особо опасных, технически сложных и уникальных объектов, объектов использования атомной энергии)', default=None)
+    is_extremely_dangerous: str | None = Field(alias='В отношении особо опасных, технически сложных и уникальных объектов капитального строительства (кроме объектов использования атомной энергии)', default=None)
+    is_nuclear: str | None = Field(alias='В отношении объектов использования атомной энергии', default=None)
     responsibility_level_odo: str | None = Field(alias='Размер обязательств по договорам подряда с использованием конкурентных способов заключения договоров (уровень ответственности)', default=None)
     responsibility_level_vv: str | None = Field(alias='Стоимость работ по одному договору подряда (уровень ответственности)', default=None)
 
@@ -113,9 +139,11 @@ class NoprizRow(BaseRow):
     simple_date: str | None = Field(alias='Дата (В отношении объектов капитального строительства (кроме особо опасных, технически сложных и уникальных объектов, объектов использования атомной энергии))', default=None)
     extremely_dangerous_date: str | None = Field(alias='Дата (В отношении особо опасных, технически сложных и уникальных объектов капитального строительства (кроме объектов использования атомной энергии))', default=None)
     nuclear_date: str | None = Field(alias='Дата (В отношении объектов использования атомной энергии:)', default=None)
+    checks: list[Check] | None
+    insurances: list[Insurance] | None
 
 
-class BaseFilters(BaseModel):
+class BaseFilters(MyBaseModel):
     member_status: int | None = None  # 1 - Является членом, 2 - Исключен
     sro_enabled: bool | None = None
     sro_registration_number: str | list[str] | None = None
