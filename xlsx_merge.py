@@ -5,6 +5,7 @@ from pathlib import Path
 from io import BytesIO
 from copy import copy
 import tqdm
+from multiprocessing import cpu_count, Process
 
 import aiofiles
 from openpyxl import Workbook, load_workbook
@@ -13,15 +14,26 @@ from openpyxl.worksheet.worksheet import Worksheet
 from config import DATE_FORMAT
 from src.my_logging import get_logger
 from src.scrappers.nopriz import ScraperNopriz
+from src.scrappers.nostroy import ScraperNostroy
 from src.schemas import FiltersNostroy, FiltersNopriz
 
 DATE_FROM = '01.01.1900'
 # DATE_FROM = '13.06.2024'
 DATE_TO = datetime.now().date().strftime(DATE_FORMAT)
+date_from = datetime.strptime(DATE_FROM, DATE_FORMAT)
+date_to = datetime.strptime(DATE_TO, DATE_FORMAT)
 
 
-def append_to_excel(ws_main: Worksheet, xlsx_bytes: bytes) -> None:
+def get_workbook(filepath: Path) -> Workbook:
+    if filepath.exists():
+        wb = load_workbook(filepath)
+    else:
+        wb = Workbook()
+    return wb
 
+
+def append_to_excel(wb_main: Workbook, xlsx_bytes: bytes) -> None:
+    ws_main = wb_main.worksheets[0]
     wb_cart = load_workbook(BytesIO(xlsx_bytes))
     ws_cart = wb_cart.worksheets[0]
     last_row = ws_main.max_row - 1 if ws_main.max_row == 1 else ws_main.max_row - 3
@@ -75,41 +87,49 @@ def append_to_excel(ws_main: Worksheet, xlsx_bytes: bytes) -> None:
             )
 
 
-async def main():
-    date_from = datetime.strptime(DATE_FROM, DATE_FORMAT)
-    date_to = datetime.strptime(DATE_TO, DATE_FORMAT)
-    proxy_url = ''
-
-    async with ScraperNopriz(date_format=DATE_FORMAT, date_from=date_from, date_to=date_to) as scrapper:
-        filters = FiltersNopriz(member_status=1, sro_enabled=True, sro_registration_number='И')
-        ids = await scrapper.get_ids(filters=filters, use_cached=True)
-        ids = ids[:10]
-
-        filepath_main = Path(scrapper.get_filename('nopriz')).with_suffix('.xlsx')
-
-        ws_main = wb_main.worksheets[0]
-        logging.info(f'Red workbook')
-
+async def _run_scrapper(filepath: Path, wb: Workbook, ids: list[int]):
+    async with ScraperNostroy(date_format=DATE_FORMAT, date_from=date_from, date_to=date_to) as scrapper:
         tasks_download = []
         for n, id_ in enumerate(ids):
             tasks_download.append(scrapper.download_xlsx_cart(id_))
 
             if len(tasks_download) == 20 or id_ == ids[-1]:
                 results = await asyncio.gather(*tasks_download)
-                logging.info(f'Downloaded bunch of files')
+                print(f'Downloaded bunch of files')
 
-                # tasks_append_to_xlsx = [append_to_excel(ws_main=ws_main, xlsx_bytes=r) for r in results]
-                # await asyncio.gather(*tasks_append_to_xlsx)
                 for xlsx_bytes in results:
-                    append_to_excel(ws_main=ws_main, xlsx_bytes=xlsx_bytes)
+                    append_to_excel(wb_main=wb, xlsx_bytes=xlsx_bytes)
 
                 tasks_download = []
-                logging.info(f'{n}/{len(ids)} Appended data to worksheet')
+                print(f'{n+1}/{len(ids)} Appended data to worksheet')
 
             if n % 100 == 0:
-                logging.info('saving...file')
-                wb_main.save(filepath_main)
-        wb_main.save(filepath_main)
+                print('saving...file')
+                wb.save(filepath)
+        wb.save(filepath)
+
+
+def run_scrapper(filepath: Path, wb: Workbook, ids: list[int]) -> None:
+    asyncio.run(_run_scrapper(filepath=filepath, wb=wb, ids=ids))
+
+
+async def main():
+    proxy_url = ''
+
+    async with ScraperNostroy(date_format=DATE_FORMAT, date_from=date_from, date_to=date_to) as scrapper:
+        filters = FiltersNostroy(member_status=1, sro_enabled=True)
+        ids = await scrapper.get_ids(filters=filters, use_cached=True)
+        ids = ids[50000:]
+
+        count_processes = 12
+        count_ids_per_task = len(ids) // count_processes
+        ids_for_tasks = [ids[i:i + count_ids_per_task] for i in range(0, len(ids), count_ids_per_task)]
+
+        for i in range(count_processes):
+            filepath = Path(scrapper.get_filename() + f'_{i+1}').with_suffix('.xlsx')
+            wb = get_workbook(filepath=filepath)
+            p = Process(target=run_scrapper, args=(filepath, wb, ids_for_tasks[i]))
+            p.start()
 
 
 if __name__ == '__main__':

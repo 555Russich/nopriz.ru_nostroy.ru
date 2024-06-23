@@ -11,6 +11,9 @@ ssl_context = ssl.create_default_context(capath=FILEPATH_CERT)
 
 
 class ScraperNostroy(BaseScrapper):
+    NAME = 'nostroy'
+
+
     async def _collect_ids(self, filters: dict) -> list[int]:
         ids = set()
         data = {

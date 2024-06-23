@@ -41,9 +41,20 @@ class BaseScrapper(ABC):
     async def get_sro_member(self, id_: int) -> NoprizRow | NostroyRow:
         raise NotImplementedError
 
-    @abstractmethod
     async def get_sro(self, id_: int) -> SRO:
-        raise NotImplementedError
+        d = await self.request_json(method='POST', url=f'https://reestr.{self.NAME}.ru/api/sro/{id_}')
+        d = d['data']
+        return SRO(
+            full_description=d['full_description'],
+            short_description=d['short_description'],
+            registration_number=d['registration_number'],
+            inn=d['inn'],
+            ogrn=d['ogrn'],
+            place=d['place'],
+            phone=d['phone'],
+            email=d['email'],
+            site=d['site']
+        )
 
     async def collect_ids(self, filters: dict) -> list[int]:
         ids = []
@@ -59,6 +70,22 @@ class BaseScrapper(ABC):
                         logging.info(f'Start using {filters_=}')
                         ids += await self._collect_ids(filters_)
         return ids
+
+    @retry(
+        wait=wait_random(5, 10),
+        before_sleep=before_sleep_log(logger=logging.getLogger(), log_level=logging.INFO),
+        # before=before_log(logger=logging.getLogger(), log_level=logging.INFO),
+        # after=after_log(logger=logging.getLogger(), log_level=logging.INFO),
+    )
+    async def download_xlsx_cart(self, id_: int) -> bytes:
+        async with self._session.request(
+                method='GET',
+                url=f'https://reestr.{self.NAME}.ru/api/member/{id_}/cart/download',
+                timeout=30
+        ) as r:
+            if r.content_type != 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+                raise Exception(f'{r.content_type=}')
+            return await r.read()
 
     async def get_ids(self, filters: FiltersNostroy | FiltersNopriz | None = None,
                       use_cached: bool = False) -> list[int]:
@@ -111,8 +138,8 @@ class BaseScrapper(ABC):
                     assert resp.ok, resp
             raise ex
 
-    def get_filename(self, service_name: str) -> str:
-        return f'{service_name}_from_{self.date_from.date()}_to_{self.date_to.date()}'
+    def get_filename(self) -> str:
+        return f'{self.NAME}_from_{self.date_from.date()}_to_{self.date_to.date()}'
 
     async def __aenter__(self):
         self._session = await ClientSession().__aenter__()

@@ -13,6 +13,7 @@ from src.schemas import NoprizRow, SRO, Check, Insurance
 
 
 class ScraperNopriz(BaseScrapper):
+    NAME = 'nopriz'
     DATE_API_FORMAT = '%Y-%m-%dT%X%z'
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                              '(KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36'}
@@ -178,29 +179,6 @@ class ScraperNopriz(BaseScrapper):
         except Exception as ex:
             logging.info(f'{id_=}\n{r}')
             raise ex
-
-    async def get_sro(self, id_: int) -> SRO:
-        d = await self.request_json(method='POST', url=f'https://reestr.nopriz.ru/api/sro/{id_}')
-        d = d['data']
-        return SRO(
-            full_description=d['full_description'],
-            short_description=d['short_description'],
-            registration_number=d['registration_number'],
-            inn=d['inn'],
-            ogrn=d['ogrn'],
-            place=d['place'],
-            phone=d['phone'],
-            email=d['email'],
-            site=d['site']
-        )
-
-    async def download_xlsx_cart(self, id_: int) -> bytes:
-        async with self._session.request(
-                method='GET',
-                url=f'https://reestr.nopriz.ru/api/member/{id_}/cart/download',
-                timeout=30
-        ) as r:
-            return await r.read()
 
     @classmethod
     def to_excel(cls, filepath: Path, data: list[NoprizRow]) -> None:
